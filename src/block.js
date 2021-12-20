@@ -38,8 +38,13 @@ class Block {
     validate() {
         let self = this;
         return new Promise((resolve) => {
-            const currentBlockHash = SHA256(JSON.stringify(self)).toString();
-            if (currentBlockHash !== self.hash) {
+            const currentHash = self.hash;
+            self.hash = null;
+
+
+            const expectedHash = SHA256(JSON.stringify(self)).toString();
+            self.hash = currentHash
+            if (expectedHash !== currentHash) {
                 // this means that the block has been tampered with
                 resolve(false);
             } else {
