@@ -199,12 +199,15 @@ class Blockchain {
     validateChain() {
         let self = this;
         let errorLog = [];
+        let previousHash = null;
         return new Promise(async (resolve, reject) => {
             self.chain.forEach(async block => {
+                const currentBlockPreviousHashValue = block.previousBlockHash;
                 const blockisOk = await block.validate();
-                if (!blockisOk) {
+                if (!blockisOk || (currentBlockPreviousHashValue !== previousHash)) {
                     errorLog.push('Block validation failed at block: ' + block.height)
                 }
+                previousHash = block.hash;
             });
             resolve(errorLog);
         });
