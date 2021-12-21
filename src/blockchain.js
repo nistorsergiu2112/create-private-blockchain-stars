@@ -64,25 +64,25 @@ class Blockchain {
     _addBlock(block) {
         let self = this;
         return new Promise(async (resolve, reject) => {
-           const blockValidated = await self.validateChain();
-           if (blockValidated.length > 0) {
-            // block is not valid
-            reject(blockValidated);
-           }
-           block.height = self.height + 1;
-           block.time = new Date().getTime().toString().slice(0,-3);
-           if (self.height >= 0) {
-            block.previousBlockHash = self.chain[self.height].hash;
+           self.validateChain().then(errors => {
+            if (errors.length > 0) {
+                return reject(errors)
+            } else {
+                block.height = self.height + 1;
+                block.time = new Date().getTime().toString().slice(0,-3);
+                if (self.height >= 0) {
+                 block.previousBlockHash = self.chain[self.height].hash;
+                 }
+                block.hash = SHA256(JSON.stringify(block)).toString();
+                self.chain.push(block);
+                self.height += 1;
+                if (self.chain[self.height] == block) {
+                    return resolve(block);
+                } else {
+                    return reject(Error("An error happend durring block adding"));
+                }
             }
-           block.hash = SHA256(JSON.stringify(block)).toString();
-           self.chain.push(block);
-           self.height += 1;
-           
-           if (self.chain[self.height] == block) {
-            resolve(block);
-           } else {
-            reject(Error("An error happend durring block adding"));
-           }
+           })
         });
     }
 
@@ -123,7 +123,7 @@ class Blockchain {
             const parsedTime = parseInt(message.split(':')[1]);
             const currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
 
-            if (parsedTime > currentTime - 300000) {
+            if (parsedTime > currentTime - 300) {
                 if (bitcoinMessage.verify(message, address, signature)) {
                     let newBlock = new BlockClass.Block({owner: address, star});
                     await self._addBlock(newBlock);

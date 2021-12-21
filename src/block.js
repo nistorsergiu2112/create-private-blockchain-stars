@@ -39,11 +39,7 @@ class Block {
         let self = this;
         return new Promise((resolve) => {
             const currentHash = self.hash;
-            self.hash = null;
-
-
-            const expectedHash = SHA256(JSON.stringify(self)).toString();
-            self.hash = currentHash
+            const expectedHash = SHA256(JSON.stringify({ ...self, "hash": null })).toString();
             if (expectedHash !== currentHash) {
                 // this means that the block has been tampered with
                 resolve(false);
